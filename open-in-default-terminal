@@ -1,0 +1,9 @@
+#!/bin/bash
+
+TERM_EXEC=$(gsettings get org.gnome.desktop.default-applications.terminal exec | tr -d \')
+TERM_EXEC_ARG=$(gsettings get org.gnome.desktop.default-applications.terminal exec-arg | tr -d \')
+
+if hash "$TERM_EXEC"
+then
+    command ${TERM_EXEC} ${TERM_EXEC_ARG} ${@}
+fi
