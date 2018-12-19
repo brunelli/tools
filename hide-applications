@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# hide-applications - Set NoDisplay in desktop files
 
 mkdir -p $HOME/.local/share/applications/
 

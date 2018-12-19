@@ -1,4 +1,19 @@
 #!/bin/bash
+#
+# open-in-default-terminal - Open a command using the default terminal
+
+declare -a REQUIRES=(gsettings)
+declare    TERM_EXEC
+declare    TERM_EXEC_ARG
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 1
+    }
+done
 
 TERM_EXEC=$(gsettings get org.gnome.desktop.default-applications.terminal exec | tr -d \')
 TERM_EXEC_ARG=$(gsettings get org.gnome.desktop.default-applications.terminal exec-arg | tr -d \')

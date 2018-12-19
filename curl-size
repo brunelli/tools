@@ -20,7 +20,7 @@ do
     }
 done
 
-for URL in "$@"
+for URL in "${@}"
 do
     SIZE=$(curl -LIs "$URL" | grep -i -e ^'content-length' | tr -d '\r' | cut -f2 -d\ )
     if (($? == 0))

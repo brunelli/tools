@@ -1,4 +1,6 @@
 #!/bin/env python3
+#
+# get-chrome-user-agent - Get Google Chrome's user agent
 
 from selenium.webdriver import Chrome
 from selenium.webdriver.chrome.options import Options

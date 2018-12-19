@@ -1,13 +1,26 @@
 #!/bin/bash
+#
+# duration - Print duration for the given media file(s)
 
-for FILE in "$@"
+declare    DURATION
+declare -a REQUIRES=(mediainfo)
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 1
+    }
+done
+
+for FILE in "${@}"
 do
     [ -f "$FILE" ] &&
     DURATION=$( mediainfo "$FILE" | \
                 grep -e "Duration" --max-count=1 | \
                 cut -f 1 -d ":" --complement | \
                 sed "s/^ //g" )
-    [ "$DURATION" ] &&
-    echo -e "\e[01;35m$( basename "$FILE" )\e[0m - $DURATION" &&
-    unset DURATION
+    [[ $DURATION ]] &&
+    echo -e "\e[01;35m$( basename "$FILE" )\e[0m - $DURATION"
 done

@@ -1,13 +1,29 @@
 #!/bin/bash
+#
+# pdfcount - Count the total lines in one or more PDF files
+
+declare -i PAGES
+declare -r REQUIRES=(file pdfinfo)
+declare -i TOTAL
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 1
+    }
+done
 
 for FILE in "${@}"
 do
+    [[ $(file --mime-type "$FILE" | cut -f2- -d/) == "pdf" ]] || continue
     PAGES=$( pdfinfo "$FILE" 2> /dev/null | grep "^Pages:" | sed "s/[^0-9]*//" )
-    [[ $PAGES ]] &&
+    (( PAGES > 0 )) &&
     {
         echo -e "\e[01;35m$FILE\e[0m - $PAGES page(s)"
-        TOTAL=$((TOTAL + PAGES))
+        ((TOTAL += PAGES))
     }
 done
-[[ $TOTAL -gt $PAGES ]] &&
+(( TOTAL > $PAGES )) &&
 echo "$TOTAL total pages."

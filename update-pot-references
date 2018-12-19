@@ -1,23 +1,34 @@
 #!/bin/sh
+#
+# update-pot-references - Update references for a POT file
 
-if [[ $# -lt 2 ]]
+if (($# < 2))
 then
     echo "USAGE: $(basename "$0") POT_FILE SRC_FILE [SRC_FILE...]"
     exit 1
 fi
 
-file="$1"
+for FILE in "${@}"
+do
+    [[ -f "$FILE" ]] ||
+    {
+        echo "File not found: ${FILE}"
+        exit 2
+    }
+done
+
+INPUT_FILE="$1"
 shift
 
-for line in $(grep -n -e '^msgid ' "$file" | cut -f1 -d:)
+for LINE in $(grep -n -e '^msgid ' "$INPUT_FILE" | cut -f1 -d:)
 do
-    [[ $(sed -n $((line - 1))p "$file") =~ ^"#: " ]] || continue
-    MSGID=$(sed -n ${line}p "$file" | cut -f1 -d\  --complement)
+    [[ $(sed -n $((LINE - 1))p "$INPUT_FILE") =~ ^"#: " ]] || continue
+    MSGID=$(sed -n ${LINE}p "$INPUT_FILE" | cut -f1 -d\  --complement)
     REFERENCES=$(grep -Hn "\$${MSGID}" ${@} | cut -f1,2 -d: | tr '\n' ' ')
     [[ -z $REFERENCES ]] &&
     {
-        echo "WARNING: No reference found for line ${line}: $MSGID"
+        echo "WARNING: No reference found for line ${LINE}: $MSGID"
         continue
     }
-    sed -i "$((line - 1))s~.*~#: ${REFERENCES}~" "$file"
+    sed -i "$((LINE - 1))s~.*~#: ${REFERENCES}~" "$INPUT_FILE"
 done
