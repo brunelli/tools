@@ -1,0 +1,12 @@
+#!/bin/bash
+
+mkdir -p $HOME/.local/share/applications/
+
+for APP in "${@}"
+do
+    [[ -f "/usr/share/applications/$APP" ]] && DESKTOP_FILE="/usr/share/applications/$APP" ||
+    [[ -f "/usr/share/applications/$APP.desktop" ]] && DESKTOP_FILE="/usr/share/applications/$APP.desktop" ||
+    echo -e "[Desktop Entry]\nName=$APP" > "$HOME/.local/share/applications/$APP.desktop"
+    [[ -f $HOME/.local/share/applications/$APP.desktop ]] || cp "$DESKTOP_FILE" "$HOME/.local/share/applications/$APP.desktop"
+    echo "NoDisplay=true" >> "$HOME/.local/share/applications/$APP.desktop" # TODO: appending isn't a proper solution
+done

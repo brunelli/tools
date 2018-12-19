@@ -1,0 +1,23 @@
+#!/bin/sh
+
+if [[ $# -lt 2 ]]
+then
+    echo "USAGE: $(basename "$0") POT_FILE SRC_FILE [SRC_FILE...]"
+    exit 1
+fi
+
+file="$1"
+shift
+
+for line in $(grep -n -e '^msgid ' "$file" | cut -f1 -d:)
+do
+    [[ $(sed -n $((line - 1))p "$file") =~ ^"#: " ]] || continue
+    MSGID=$(sed -n ${line}p "$file" | cut -f1 -d\  --complement)
+    REFERENCES=$(grep -Hn "\$${MSGID}" ${@} | cut -f1,2 -d: | tr '\n' ' ')
+    [[ -z $REFERENCES ]] &&
+    {
+        echo "WARNING: No reference found for line ${line}: $MSGID"
+        continue
+    }
+    sed -i "$((line - 1))s~.*~#: ${REFERENCES}~" "$file"
+done

@@ -1,0 +1,10 @@
+#!/bin/env python3
+
+from selenium.webdriver import Chrome
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.headless = True
+driver = Chrome(options=options)
+print(driver.execute_script('return navigator.userAgent;').replace('Headless', ''))
+driver.quit()

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for FILE in "${@}"
+do
+    PAGES=$( pdfinfo "$FILE" 2> /dev/null | grep "^Pages:" | sed "s/[^0-9]*//" )
+    [[ $PAGES ]] &&
+    {
+        echo -e "\e[01;35m$FILE\e[0m - $PAGES page(s)"
+        TOTAL=$((TOTAL + PAGES))
+    }
+done
+[[ $TOTAL -gt $PAGES ]] &&
+echo "$TOTAL total pages."

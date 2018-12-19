@@ -1,0 +1,13 @@
+#!/bin/bash
+
+for FILE in "$@"
+do
+    [ -f "$FILE" ] &&
+    DURATION=$( mediainfo "$FILE" | \
+                grep -e "Duration" --max-count=1 | \
+                cut -f 1 -d ":" --complement | \
+                sed "s/^ //g" )
+    [ "$DURATION" ] &&
+    echo -e "\e[01;35m$( basename "$FILE" )\e[0m - $DURATION" &&
+    unset DURATION
+done
