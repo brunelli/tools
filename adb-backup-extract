@@ -1,0 +1,32 @@
+#!/bin/bash
+#
+# adb-backup-extract - Extract backups from your Android apps
+
+declare -a REQUIRES=(adb tar)
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 1
+    }
+done
+
+for UUID in "${@}"
+do
+    adb backup -f "/tmp/${UUID}-data.ab" -noapk "${UUID}"
+    [[ -f "/tmp/${UUID}-data.ab" ]] &&
+    {
+        [[ -d "${UUID}" ]] ||
+        mkdir "${UUID}" &&
+        {
+            cd "${UUID}"
+            (
+                printf "\x1f\x8b\x08\x00\x00\x00\x00\x00"
+                tail -c +25 "/tmp/${UUID}-data.ab"
+            ) | tar xfvz -
+            cd ..
+        }
+    }
+done
