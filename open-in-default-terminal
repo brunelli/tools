@@ -6,12 +6,18 @@ declare -a REQUIRES=(gsettings)
 declare    TERM_EXEC
 declare    TERM_EXEC_ARG
 
+if (($# < 1))
+then
+    echo "USAGE: $(basename "$0") COMMAND [ARGUMENT] [ARGUMENT...]"
+    exit 1
+fi
+
 for CMD in "${REQUIRES[@]}"
 do
     command -v "$CMD" > /dev/null ||
     {
         echo "Missing required command: ${CMD}" >&2
-        exit 1
+        exit 2
     }
 done
 
