@@ -35,7 +35,7 @@ do
         ((SIZE > GB)) && echo "${PREFIX}$(bc -l <<< "scale=2; $SIZE / $GB") GB" && continue
         ((SIZE > MB)) && echo "${PREFIX}$(bc -l <<< "scale=2; $SIZE / $MB") MB" && continue
         ((SIZE > KB)) && echo "${PREFIX}$(bc -l <<< "scale=2; $SIZE / $KB") KB" && continue
-        echo "${URL}: ${SIZE} B"
+        echo "${PREFIX}${SIZE} B"
     else
         echo "${URL}: Failed to get content-length" >&2
     fi
