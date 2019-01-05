@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# open-in-default-terminal - Open a command using the default terminal
+# run-in-default-terminal - Run a command using the default terminal
 
 declare -a REQUIRES=(gsettings)
 declare    TERM_EXEC
