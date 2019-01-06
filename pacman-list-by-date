@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# pacman-list-by-date - List installed packages by date of installation
+
+declare FILES=$(find /var/lib/pacman/local/ -name 'desc' 2> /dev/null)
+declare SORT_ARGS
+
+[[ -n "$FILES" ]] ||
+{
+    echo "No package found." >&2
+    exit 1
+}
+
+[[ "$1" == "-r" ]] && SORT_ARGS='--reverse'
+
+paste <(awk 'c&&!--c;/%NAME%/{c=1}' ${FILES}) \
+      <(awk 'c&&!--c;/%VERSION%/{c=1}' ${FILES}) \
+      <(awk 'c&&!--c;/%INSTALLDATE%/{c=1}' ${FILES} | xargs -I{} date -d @{} +'%Y-%m-%d %H:%M:%S') |
+    while IFS=$'\t' read -r name version date
+    do
+        printf "$name ($version)\t$date\n"
+    done |
+    column --separator=$'\t' --table |
+    sort -k3 ${SORT_ARGS}
