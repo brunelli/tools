@@ -1,0 +1,26 @@
+#!/bin/bash
+#
+# trash-stdin - Trash files from stdin
+
+declare -a REQUIRES=(gio)
+
+if ! [[ -p /dev/stdin ]]
+then
+    echo "USAGE: COMMAND [ARGS...] | $(basename "$0")"
+    exit 1
+fi
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 2
+    }
+done
+
+while read line
+do
+    gio trash "$line" &&
+    echo "Trashed '$line'"
+done < /dev/stdin
