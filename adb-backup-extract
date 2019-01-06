@@ -28,6 +28,7 @@ do
         mkdir "${UUID}" &&
         {
             cd "${UUID}"
+            # Source: https://android.stackexchange.com/a/78183
             (
                 printf "\x1f\x8b\x08\x00\x00\x00\x00\x00"
                 tail -c +25 "/tmp/${UUID}-data.ab"
