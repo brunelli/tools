@@ -1,0 +1,117 @@
+#!/bin/bash
+#
+# wl-clipboard-x11 - A wrapper to use wl-clipboard as a drop-in replacement to X11 clipboard tools
+
+declare -a ARGS
+declare    CLIPBOARD_BACKEND
+declare    WL_COMMAND="wl-copy"
+
+case "$(basename "$0")" in
+    xclip) CLIPBOARD_BACKEND="XCLIP";;
+    xsel) CLIPBOARD_BACKEND="XSEL";;
+    *) CLIPBOARD_BACKEND="WL_CLIPBOARD";;
+esac
+
+if [[ $CLIPBOARD_BACKEND == XCLIP ]]
+then
+    while (($# > 0))
+    do
+        case "$1" in
+            -i|-in) shift;;
+            -o|-out)
+                WL_COMMAND="wl-paste -n"
+                shift
+                ;;
+            -f|-filter) shift;;
+            -l|-loops) shift 2;;
+            -d|-display) shift 2;;
+            -h|-help)
+                ARGS+=("--help")
+                shift
+                ;;
+            -selection)
+                case "$2" in
+                    primary) ARGS+="--primary";;
+                    secondary) true;;
+                    clipboard) true;;
+                    *) ARGS+=("$2")
+                esac
+                shift 2
+                ;;
+            -version)
+                ARGS+=("--version")
+                shift
+                ;;
+            -silent) shift;;
+            -quiet)
+                ARGS+=("--foreground")
+                shift
+                ;;
+            -verbose) shift;;
+            *)
+                ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
+elif [[ $CLIPBOARD_BACKEND == XSEL ]]
+then
+    while (($# > 0))
+    do
+        case "$1" in
+            -a|--append) shift;;
+            -f|--follow) shift;;
+            -i|--input) shift;;
+            -o|--output)
+                WL_COMMAND="wl-paste -n"
+                shift
+                ;;
+            -c|--clear)
+                ARGS+=("$1")
+                shift
+                ;;
+            -d|--delete)
+                ARGS+=("--clear")
+                shift
+                ;;
+            -p|--primary)
+                ARGS+=("$1")
+                shift
+                ;;
+            -s|--secondary) shift;;
+            -b|--clipboard) shift;;
+            -k|--keep) shift;;
+            -x|--exchange) shift;;
+            -d|--display) shift 2;;
+            -t|--selectionTimeout) shift 2;;
+            -l|--logfile) shift 2;;
+            -n|--nodetach)
+                ARGS+=("--foreground")
+                shift
+                ;;
+            -h|--help)
+                ARGS+=("$1")
+                shift
+                ;;
+            -v*|--verbose) shift;;
+            --version)
+                ARGS+=("$1")
+                shift
+                ;;
+            *)
+                ARGS+=("$1")
+                shift
+                ;;
+        esac
+    done
+else
+    ARGS=("${@}")
+fi
+
+if [[ -p /dev/stdin ]]
+then
+    IFS='' read -d '' -r STDIN < /dev/stdin
+    printf %s "${STDIN}" | ${WL_COMMAND} ${WL_CLIPBOARD_PARAMS} "${ARGS[@]}"
+else
+    ${WL_COMMAND} ${WL_CLIPBOARD_PARAMS} "${ARGS[@]}"
+fi
