@@ -26,5 +26,5 @@ TERM_EXEC_ARG=$(gsettings get org.gnome.desktop.default-applications.terminal ex
 
 if hash "$TERM_EXEC"
 then
-    command ${TERM_EXEC} ${TERM_EXEC_ARG} ${@}
+    command ${TERM_EXEC} ${TERM_EXEC_ARG} "${@}"
 fi
