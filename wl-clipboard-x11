@@ -23,6 +23,10 @@ then
                 shift
                 ;;
             -f|-filter) shift;;
+            -r|-rmlastnl)
+                CLIPBOARD_ARGS+=("--trim-newline")
+                shift
+                ;;
             -l|-loops) shift 2;;
             -d|-display) shift 2;;
             -h|-help)
