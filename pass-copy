@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# pass-copy - Copy a pass entry
+
+declare -i ID=0
+declare -r PASTE_ONCE="${PASSWORD_STORE_PASTE_ONCE:+ -loops 1}"
+declare -r PREFIX="${PASSWORD_STORE_DIR:-$HOME/.password-store}"
+declare -a REQUIRES=(dmenu notify-send.sh pass systemctl xclip)
+declare -A STORE
+declare -i TIMEOUT=${PASSWORD_STORE_CLIP_TIME:-45}
+IFS=',' read -r -a CLIP_METADATA <<< "${PASSWORD_STORE_CLIP_METADATA:-login,password}"
+
+get_active_clipboard_manager() {
+    for MANAGER in "clipmenud.service"
+    do
+        systemctl is-active --quiet --user ${MANAGER}
+        (($?)) ||
+        {
+            printf "%s" "${MANAGER}"
+            break
+        }
+    done
+}
+
+list_passwords() {
+    find "${PREFIX}" -type f -iname '*.gpg' | sed -n "s~^${PREFIX}[/]\?\(.*\).gpg$~\1~p" | sort
+}
+
+pass_has_requested_metadata() {
+    for KEY in "${@}"
+    do
+        for METADATA in "${CLIP_METADATA[@]}"
+        do
+            [[ "${KEY,,}" == "${METADATA,,}" ]] && return 0
+        done
+    done
+    return 1
+}
+
+send_notification() {
+    local BODY=$1
+    local TIMEOUT=$2
+    shift 2
+
+    [[ -n $1 ]] && set -- --default-action="kill $1" --close-action="kill $1"
+
+    notify-send.sh -a pass -i dialog-password -u critical \
+        -R ${TEMP_NOTIFY} -t ${TIMEOUT} "${@}" \
+        "Password Store" "${BODY}"
+}
+
+for CMD in "${REQUIRES[@]}"
+do
+    command -v "$CMD" > /dev/null ||
+    {
+        echo "Missing required command: ${CMD}" >&2
+        exit 1
+    }
+done
+
+SELECTED_PASS=$(list_passwords | dmenu "${@}")
+[[ $? -eq 0 ]] || exit 2
+
+while IFS='' read -r LINE
+do
+    if ! ((${#STORE[@]}))
+    then
+        STORE+=([password]="${LINE}")
+    else
+        STORE+=([`tr '[:upper:]' '[:lower:]' <<< "${LINE%: *}"`]="${LINE#*: }")
+    fi
+done < <(pass show "$SELECTED_PASS")
+
+pass_has_requested_metadata ${!STORE[@]} || exit 3
+
+declare -r TEMP_CLIPBOARD=$(mktemp --suffix=.pass.clip)
+xclip -out -selection clipboard > ${TEMP_CLIPBOARD}
+
+declare -r TEMP_NOTIFY=$(mktemp --suffix=.pass.notf)
+echo $RANDOM > ${TEMP_NOTIFY}
+
+CLIPBOARD_MANAGER=$(get_active_clipboard_manager)
+[[ -n "$CLIPBOARD_MANAGER" ]] &&
+{
+    systemctl stop --user ${CLIPBOARD_MANAGER}
+    trap "rm -f ${TEMP_CLIPBOARD} ${TEMP_NOTIFY}; systemctl start --user ${CLIPBOARD_MANAGER}" INT
+}
+
+for ITEM in "${CLIP_METADATA[@]}"
+do
+    ITEM="${ITEM,,}"
+    [[ -n "${STORE[$ITEM]}" ]] || continue
+    printf "%s" "${STORE[$ITEM]}" | timeout ${TIMEOUT}s xclip -in -selection clipboard${PASTE_ONCE} -quiet &
+    PID=$!
+    send_notification "${ITEM^} is in the clipboard" $((TIMEOUT * 1000)) $PID
+    wait $PID
+done
+
+[[ -n "$CLIPBOARD_MANAGER" ]] && systemctl start --user ${CLIPBOARD_MANAGER}
+xclip -in -selection clipboard < ${TEMP_CLIPBOARD} &&
+send_notification "Clipboard cleared" 2000 > /dev/null
+rm -f ${TEMP_CLIPBOARD} ${TEMP_NOTIFY}
