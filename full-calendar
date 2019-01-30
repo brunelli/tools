@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# full-calendar - An interactive calendar
+
+clear
+cal -y
+
+while IFS='' read -r -e -p "> cal " COMMAND
+do
+    if [[ $COMMAND =~ ^(exit|quit|q)$ ]]
+    then
+        break
+    elif [[ $COMMAND =~ ^(help|h)$ ]]
+    then
+        COMMAND="--help"
+    elif [[ -z "${COMMAND// }" ]]
+    then
+        COMMAND="-y"
+    fi
+    clear
+    cal ${COMMAND}
+done
