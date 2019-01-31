@@ -1,0 +1,17 @@
+#!/bin/bash
+
+: "${CM_DIR="${XDG_RUNTIME_DIR-"${TMPDIR-/tmp}"}"}"
+
+set -o pipefail
+
+SELECTION=$(CM_HISTLENGTH=15 CM_LAUNCHER=rofi clipmenu -kb-custom-1 Ctrl+x -multi-select -p clipmenu -i "${@}" | cat)
+
+case $? in
+    0)
+        FILE=$(head -n1 <<< "$SELECTION" | cksum)
+        for selection in clipboard primary; do
+            xsel --logfile /dev/null -i --"$selection" < "$CM_DIR/clipmenu.5.$USER/$FILE"
+        done
+        ;;
+    10) cat <<< "$SELECTION" | clipdel;;
+esac
