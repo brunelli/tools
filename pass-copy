@@ -104,16 +104,11 @@ do
             ((OTP_TIMEOUT = TIMEOUT))
             while [[ $OTP_TIMEOUT -gt 0 ]]
             do
-                # Source: https://github.com/tadfisher/pass-otp/issues/94#issuecomment-460757106
-                TIME=$(date +%-S)
-                ((TIME = 30 - TIME))
-                [[ $TIME -eq 0 ]] && ((TIME = 30))
-                [[ $TIME -lt 0 ]] && ((TIME = 30 + TIME))
-                [[ $TIME -gt $OTP_TIMEOUT ]] && ((TIME = OTP_TIMEOUT))
-
-                OTP=$(pass otp "$SELECTED_PASS" 2> /dev/null)
+                OTP=$(pass otp from-uri -t "${STORE[$ITEM]}" 2> /dev/null)
                 [[ $? -eq 0 ]] || break
-                copy_content "${OTP}" "OTP" "${TIME}"
+                TIME=$(sed -n 's/^.* \([0-9]\+\) seconds$/\1/p' <<< "${OTP}")
+                [[ $TIME -gt $OTP_TIMEOUT ]] && ((TIME = OTP_TIMEOUT))
+                copy_content "$(head -n 1 <<< "${OTP}")" "OTP" "${TIME}"
                 [[ $? -ne 124 ]] && break
                 ((OTP_TIMEOUT = OTP_TIMEOUT - TIME))
             done
