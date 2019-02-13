@@ -52,7 +52,7 @@ send_notification() {
 copy_content() {
     printf "%s" "${1}" | timeout ${3}s xclip -in -selection clipboard${PASTE_ONCE} -quiet &
     PID=$!
-    send_notification "$2 is in the clipboard" $(($3 * 1000)) $PID
+    send_notification "$2" $(($3 * 1000)) $PID
     wait $PID
     return $?
 }
@@ -108,14 +108,15 @@ do
                 [[ $? -eq 0 ]] || break
                 TIME=$(sed -n 's/^.* \([0-9]\+\) seconds$/\1/p' <<< "${OTP}")
                 [[ $TIME -gt $OTP_TIMEOUT ]] && ((TIME = OTP_TIMEOUT))
-                copy_content "$(head -n 1 <<< "${OTP}")" "OTP" "${TIME}"
+                copy_content "$(head -n 1 <<< "${OTP}")" \
+                    "<b>OTP</b> is in the clipboard: <u>$(head -n 1 <<< "${OTP}")</u> (expires in ${TIME} seconds)" "${TIME}"
                 [[ $? -ne 124 ]] && break
                 ((OTP_TIMEOUT = OTP_TIMEOUT - TIME))
             done
             ;;
         *)
             [[ -n "${STORE[$ITEM]}" ]] || continue
-            copy_content "${STORE[$ITEM]}" "${ITEM^}" "${TIMEOUT}"
+            copy_content "${STORE[$ITEM]}" "<b>${ITEM^}</b> is in the clipboard" "${TIMEOUT}"
             ;;
     esac
 done
