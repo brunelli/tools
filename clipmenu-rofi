@@ -13,5 +13,5 @@ case $? in
             xsel --logfile /dev/null -i --"$selection" < "$CM_DIR/clipmenu.5.$USER/$FILE"
         done
         ;;
-    10) cat <<< "$SELECTION" | clipdel;;
+    10) clipdel --delete <<< "$SELECTION";;
 esac
