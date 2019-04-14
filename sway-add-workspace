@@ -1,0 +1,12 @@
+#!/bin/sh
+
+WS_COUNT=1
+while [ $WS_COUNT -le 10 ]
+do
+    if ! swaymsg -t get_workspaces | grep -q -e "^[[:space:]]\+\"num\": $WS_COUNT"
+    then
+        swaymsg workspace number $WS_COUNT
+        break
+    fi
+    : $((WS_COUNT=WS_COUNT+1))
+done
