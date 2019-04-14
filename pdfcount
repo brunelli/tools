@@ -33,3 +33,4 @@ do
 done
 (( TOTAL > PAGES )) &&
 echo "$TOTAL total pages."
+exit 0
