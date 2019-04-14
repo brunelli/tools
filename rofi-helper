@@ -1,0 +1,15 @@
+#!/bin/sh
+
+_ROFI_PID=$(pidof rofi)
+
+if [ -z "${_ROFI_PID}" ]
+then
+    "${@}" &
+else
+    _ROFI_INSTANCE=$(pgrep -fx "$*" || pgrep -f "$*$")
+    kill -9 "${_ROFI_PID}"
+    if ! printf "%s" "${_ROFI_INSTANCE}" | grep -q -v "$$"
+    then
+        "${@}" &
+    fi
+fi
