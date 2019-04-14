@@ -1,0 +1,12 @@
+#!/bin/sh
+
+COUNT_A=$(wc -l "$1" | cut -f1 -d\ )
+COUNT_B=$(wc -l "$2" | cut -f1 -d\ )
+[ "$COUNT_A" -eq "$COUNT_B" ] || exit 1
+
+for line in $(seq "$COUNT_A")
+do
+    LINE_A=$(sed "${line}q;d" "$1")
+    LINE_B=$(sed "${line}q;d" "$2")
+    find . -name "$LINE_A" -exec rename "$LINE_A" "$LINE_B" {} \;
+done
