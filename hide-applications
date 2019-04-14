@@ -1,20 +1,27 @@
-#!/bin/bash
+#!/bin/sh
 #
 # hide-applications - Set NoDisplay in desktop files
 
-if (($# < 1))
+if [ $# -eq 0 ]
 then
     echo "USAGE: $(basename "$0") DESKTOP_FILE [DESKTOP_FILE...]"
     exit 1
 fi
 
-mkdir -p $HOME/.local/share/applications/
+mkdir -p "$HOME/.local/share/applications/"
 
 for APP in "${@}"
 do
-    [[ -f "/usr/share/applications/$APP" ]] && DESKTOP_FILE="/usr/share/applications/$APP" ||
-    [[ -f "/usr/share/applications/$APP.desktop" ]] && DESKTOP_FILE="/usr/share/applications/$APP.desktop" ||
-    echo -e "[Desktop Entry]\nName=$APP" > "$HOME/.local/share/applications/$APP.desktop"
-    [[ -f $HOME/.local/share/applications/$APP.desktop ]] || cp "$DESKTOP_FILE" "$HOME/.local/share/applications/$APP.desktop"
-    echo "NoDisplay=true" >> "$HOME/.local/share/applications/$APP.desktop" # TODO: appending isn't a proper solution
+    if [ -f "/usr/share/applications/$APP" ]
+    then
+        DESKTOP_FILE="/usr/share/applications/$APP"
+    elif [ -f "/usr/share/applications/$APP.desktop" ]
+    then
+        DESKTOP_FILE="/usr/share/applications/$APP.desktop"
+    else
+        printf '%s\n' "[Desktop Entry]\nName=$APP" > "$HOME/.local/share/applications/$APP.desktop"
+    fi
+    OUTPUT_FILE=$(basename "$DESKTOP_FILE")
+    [ -f "$HOME/.local/share/applications/$OUTPUT_FILE" ] || cp "$DESKTOP_FILE" "$HOME/.local/share/applications/$OUTPUT_FILE"
+    printf '%s\n' 'NoDisplay=true' >> "$HOME/.local/share/applications/$OUTPUT_FILE" # TODO: appending isn't a proper solution
 done
