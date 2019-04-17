@@ -4,12 +4,12 @@ _ROFI_PID=$(pidof rofi)
 
 if [ -z "${_ROFI_PID}" ]
 then
-    "${@}" &
+    exec "${@}"
 else
     _ROFI_INSTANCE=$(pgrep -fx "$*" || pgrep -f "$*$")
-    kill -9 "${_ROFI_PID}"
-    if ! printf "%s" "${_ROFI_INSTANCE}" | grep -q -v "$$"
+    kill "${_ROFI_PID}"
+    if ! printf "%s" "${_ROFI_INSTANCE}" | grep -q -wv $$
     then
-        "${@}" &
+        exec "${@}"
     fi
 fi
